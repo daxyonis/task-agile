@@ -6,32 +6,46 @@
           <img class="logo" src="/static/images/logo.png" />
           <div class="tagline">Open source task management tool</div>
         </div>
-        <form @submit.prevent="submitForm">          
+        <form @submit.prevent="checkForm">
+          <div v-show="errorMessage" class="alert alert-danger failed">
+            {{ errorMessage }}
+          </div>
+          <p v-if="errors.length" class="alert alert-danger">
+            <b>Please correct the following error(s):</b>
+            <ul>
+              <li v-for="error in errors" :key="error">{{ error }}</li>
+            </ul>
+          </p>
           <div class="form-group">
             <label for="username">Username</label>
             <input
               type="text"
               class="form-control"
-              id="username"              
-            />            
+              id="username"
+              v-model="form.username"
+            />
           </div>
           <div class="form-group">
             <label for="emailAddress">Email address</label>
             <input
               type="email"
               class="form-control"
-              id="emailAddress"              
-            />            
+              id="emailAddress"
+              v-model="form.emailAddress"
+            />
           </div>
           <div class="form-group">
             <label for="password">Password</label>
             <input
               type="password"
               class="form-control"
-              id="password"             
-            />            
+              id="password"
+              v-model="form.password"
+            />
           </div>
-          <button type="submit" class="btn btn-primary btn-block">Create account</button>
+          <button type="submit" class="btn btn-primary btn-block">
+            Create account
+          </button>
           <p class="accept-terms text-muted">
             By clicking “Create account”, you agree to our
             <a href="#">terms of service</a> and <a href="#">privacy policy</a>.
@@ -59,7 +73,46 @@
 </template>
 
 <script>
-export default {};
+import registrationService from '@/services/registration'
+
+export default {
+  name: 'RegisterPage',
+  data: function () {
+    return {
+      form: {
+        username: '',
+        emailAddress: '',
+        password: ''
+      },
+      errorMessage: '',
+      errors: []
+    }
+  },
+  methods: {
+    checkForm: function (e) {
+      this.errors = []
+      if (!this.form.username) {
+        this.errors.push('Required name')
+      }
+      if (this.errors.length === 0) {
+        this.submitForm()
+      }
+    },
+    submitForm () {
+      // TODO: Validate the data
+      registrationService
+        .register(this.form)
+        .then(() => {
+          this.$router.push({ name: 'LoginPage' })
+        })
+        .catch((error) => {
+          this.errorMessage =
+            'Failed to register user. Reason: ' +
+            (error.message ? error.message : 'Unknown')
+        })
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>
